@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 )
 
 /*
@@ -27,4 +28,28 @@ max retries), generate a secret random number, then let the user play the game.
 
 func main() {
 	fmt.Println("guess the number")
+	var random int = rand.Intn(100) + 1
+	fmt.Println("Enter number of tries")
+	var tries int
+	fmt.Scan(&tries)
+	game := NewGame(random, tries)
+	var copyRes string
+	var ok bool = false
+	for {
+		fmt.Println("Enter your guess")
+		var guess int
+		fmt.Scan(&guess)
+		result := game.Guess(guess)
+		if result == "You have lost!" || result == "You have won!" {
+			if !ok {
+				ok = true
+				copyRes = result
+			}
+		}
+		if !ok {
+			fmt.Println(result)
+		} else {
+			fmt.Println(copyRes)
+		}
+	}
 }

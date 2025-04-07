@@ -25,9 +25,17 @@ Output: [0, 1] because nums[0] + nums[1] == 9
 // It returns the indices as a slice of two integers.
 // Assumes exactly one solution exists.
 func TwoSum(nums []int, target int) []int {
-	return []int{0, 1}
+	for i, val := range nums {
+		for j := i + 1; j < len(nums); j++ {
+			if val+nums[j] == target {
+				return []int{i, j}
+			}
+		}
+	}
+	return nil
 }
 
 func main() {
 	fmt.Println("two sum")
+
 }
