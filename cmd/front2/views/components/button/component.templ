@@ -1,0 +1,21 @@
+package button
+
+import "fmt"
+
+templ component(model *Model) {
+    <button
+        id={ model.id }
+        class="btn btn-primary"
+        type="button"
+        disabled?={ model.disabled }
+        if model.dismissModalBehaviour {
+            data-bs-dismiss="modal"
+        }
+        if model.toggleModalBehaviourId != "" {
+            data-bs-toggle="modal"
+            data-bs-target={ fmt.Sprintf("#%s", model.toggleModalBehaviourId) }
+        }
+    >
+    { model.title }
+    </button>
+}

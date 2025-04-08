@@ -1,0 +1,19 @@
+package base
+
+templ Theming() {
+    <style>
+        :root {
+            --our-primary: rgb(102, 181, 69);
+
+            --bs-primary: var(--our-primary);
+            --bs-primary-rbg: var(--our-primary);
+        }
+
+        .btn-primary {
+            --bs-btn-bg: var(--our-primary);
+            --bs-btn-border-color: var(--our-primary);
+            --bs-btn-hover-bg: red;
+            --bs-btn-hover-border-color: red;
+        }
+    </style>
+}

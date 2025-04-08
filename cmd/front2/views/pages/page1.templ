@@ -1,0 +1,38 @@
+package pages
+
+import "curs1_boilerplate/cmd/front2/views/components/modal"
+import "curs1_boilerplate/cmd/front2/views/components/button"
+
+templ ConfirmatioModelHeader() {
+    <p class="fs-5">Are you sure ?</p>
+}
+
+templ ConfirmatioModelBody() {
+    <p>This action cannot be undone.</p>
+    <p>Please confirm to continue.</p>
+}
+
+templ ConfirmatioModelFooter() {
+    @button.Standard("closeButtonId", "Confirm").WithDismissModalBehaviour()
+}
+
+templ Page1() {
+    {{
+        id := "exampleModal"
+    }}
+    @modal.Make(id, ConfirmatioModelHeader(), ConfirmatioModelBody(), ConfirmatioModelFooter())
+    <div
+        class="d-flex flex-column justify-content-center align-items-center gap-4 w-100 h-100"
+        style="background-color: aqua;"
+    >
+        <div class="d-flex flex-row align-items-center">
+            <div class="d-flex flex-row flex-lg-column px-4 pt-3 pb-2">
+                <p>Insert name</p>
+                <input class="form-control" type="text" placeholder="Tata Ioan Puiu" style="width: 220px;">
+            </div>
+
+            @button.Standard("submitButton", "Submit").WithDisabled()
+        </div>
+        @button.Standard("launchModalId", "Launch demo modal").WithToggleModalBehaviour(id)
+    </div>
+}
