@@ -1,89 +1,101 @@
 package main
 
 import (
-	"curs1_boilerplate/db"
-	"encoding/json"
-	"fmt"
+	"context"
 	"log"
 	"net/http"
-	"time"
+	"os"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/jackc/pgx/v5"
+
+	// Backend
+	"curs1_boilerplate/cmd/backend/handler"
+	"curs1_boilerplate/cmd/backend/store"
+
+	// Frontend (Templ)
+	"curs1_boilerplate/cmd/frontend/views/base"
+	"curs1_boilerplate/cmd/frontend/views/pages"
 )
 
+/*
+wgo -file '\.templ$' templ generate & wgo -file .go go run .
+*/
 func main() {
-	// ROUTING
+	// DB Connection
+	ctx := context.Background()
+	conn, err := pgx.Connect(ctx, os.Getenv("DB_CONNECTION_STRING"))
+	if err != nil {
+		log.Fatal(" Conexiune DB eșuată:", err)
+	}
+	defer conn.Close(ctx)
+
+	handler.CategoryStore = store.NewDbCategoryStore(conn)
+	handler.UserStore = store.NewDbUserStore(conn)
+	handler.ProductStore = store.NewDbProductStore(conn)
+
+	// Router
 	r := chi.NewRouter()
 
-	// A good base middleware stack
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-
-	r.Use(middleware.Timeout(60 * time.Second))
-
-	// connect to the db
-	pool := db.NewConnectionPool()
-	queries := db.New(pool)
-
-	// just a test route
+	// --- FRONTEND ROUTES ---
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("server is up"))
+		cookie, err := r.Cookie("user_id")
+		if err != nil {
+			log.Println("No user_id cookie:", err)
+		}
+
+		isLogged := cookie != nil && cookie.Value != ""
+
+		base.PageSkeleton(pages.MainPage(isLogged), isLogged).Render(r.Context(), w)
 	})
 
-	// get all users
-	type UserDTO struct {
-		Username string `json:"user"`
-	}
-	r.Get("/users", func(w http.ResponseWriter, r *http.Request) {
-		users, err := queries.SelectUsers(r.Context())
-		if err != nil {
-			log.Printf("select users error: %s", err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-			return
-		}
-
-		usersDTO := make([]UserDTO, len(users))
-		for i, u := range users {
-			usersDTO[i] = UserDTO{Username: u.Username}
-		}
-
-		json.NewEncoder(w).Encode(usersDTO)
+	r.Get("/login", func(w http.ResponseWriter, r *http.Request) {
+		base.PageSkeleton(pages.Login(), false).Render(r.Context(), w)
 	})
 
-	// add users
-	type CreateUserDTO struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
-	r.Post("/users", func(w http.ResponseWriter, r *http.Request) {
-		// get the username and password from the request body
-
-		var decodedBody CreateUserDTO 
-		err := json.NewDecoder(r.Body).Decode(&decodedBody)
-		if err != nil {
-			log.Println(err)
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(err.Error()))
+	r.Get("/register", func(w http.ResponseWriter, r *http.Request) {
+		base.PageSkeleton(pages.Register(), false).Render(r.Context(), w)
+	})
+	r.Get("/sell", func(w http.ResponseWriter, r *http.Request) {
+		cookie, err := r.Cookie("user_id")
+		if err == nil {
+			log.Println("error cookie sell", err)
+		}
+		isLogged := cookie != nil && cookie.Value != ""
+		if !isLogged {
+			base.PageSkeleton(pages.Login(), false).Render(r.Context(), w)
 			return
 		}
+		base.PageSkeleton(pages.Sell(), isLogged).Render(r.Context(), w)
 
-		err = queries.AddUser(r.Context(), db.AddUserParams{
-			Username: decodedBody.Username,
-			Password: decodedBody.Password,
-		})
-		if err != nil {
-			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-			return
-		}
 	})
 
-	// START THE SERVER
-	fmt.Printf("Server stared at http://localhost%s\n", PORT)
-	log.Fatal(http.ListenAndServe(PORT, r))
+	fs := http.StripPrefix("/images/", http.FileServer(http.Dir("./cmd/frontend/views/images/public/images")))
+	r.Handle("/images/*", fs)
+
+	// --- BACKEND ROUTES ---
+	r.Post("/register", handler.Register)
+	r.Post("/login", handler.Login)
+
+	r.Group(func(r chi.Router) {
+		r.Use(handler.RequireAuth)
+		r.Get("/profile", handler.Profile)
+		r.Get("/logout", handler.Logout)
+	})
+
+	r.Get("/api/products", handler.GetAllProducts)
+	r.Get("/api/products/{id}", handler.GetProductByID)
+	r.Get("/api/products/category/{categoryID}", handler.GetProductsByCategory)
+	r.Post("/api/products", handler.CreateProduct)
+	r.Put("/api/products/{id}", handler.UpdateProduct)
+	r.Delete("/api/products/{id}", handler.DeleteProduct)
+	r.Get("/api/categories", handler.GetAllCategories)
+	r.Get("/api/categories/{id}", handler.GetCategoryByID)
+	r.Post("/api/categories", handler.CreateCategory)
+	r.Put("/api/categories/{id}", handler.UpdateCategory)
+	r.Delete("/api/categories/{id}", handler.DeleteCategory)
+
+	// Start server
+	log.Println("Server pornit pe http://localhost:3000")
+	log.Fatal(http.ListenAndServe(":3000", r))
 }

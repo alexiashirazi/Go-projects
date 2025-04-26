@@ -1,0 +1,63 @@
+package pages
+
+templ Sell(){
+     <div class="container py-5">
+        <h1 class="text-center mb-4 fw-bold display-5">Ce vrei să vinzi?</h1>
+        <p class="text-center mb-5 fs-5 text-muted">Alege categoria dispozitivului Apple.</p>
+
+        <div class="row row-cols-2 row-cols-md-4 g-4 justify-content-center">
+          
+                <div class="col text-center">
+                    <a href="/sell/apple/iphone" class="text-decoration-none text-dark">
+                        <div class="card shadow-sm border-0 rounded-4 p-3 h-100 hover-scale">
+                            <img src="/images/iphone.png" alt="IPhone"
+                                 class="mx-auto mb-3 img-fluid" style="max-height: 120px; object-fit: contain;" />
+                            <h5 class="fw-semibold">IPhone</h5>
+                        </div>
+                    </a>
+                </div>
+
+
+                <div class="col text-center">
+                    <a href="/sell/apple/macbook" class="text-decoration-none text-dark">
+                        <div class="card shadow-sm border-0 rounded-4 p-3 h-100 hover-scale">
+                            <img src="/images/macbook.png" alt="MacBook"
+                                 class="mx-auto mb-3 img-fluid" style="max-height: 120px; object-fit: contain;" />
+                            <h5 class="fw-semibold">Macbook</h5>
+                        </div>
+                    </a>
+                </div>
+
+
+
+                <div class="col text-center">
+                    <a href="/sell/apple/ipad" class="text-decoration-none text-dark">
+                        <div class="card shadow-sm border-0 rounded-4 p-3 h-100 hover-scale">
+                            <img src="/images/ipad.png" alt="IPad"
+                                 class="mx-auto mb-3 img-fluid" style="max-height: 120px; object-fit: contain;" />
+                            <h5 class="fw-semibold">IPad</h5>
+                        </div>
+                    </a>
+                </div>
+
+
+                <div class="col text-center">
+                    <a href="/images/airpods.png" class="text-decoration-none text-dark">
+                        <div class="card shadow-sm border-0 rounded-4 p-3 h-100 hover-scale">
+                            <img src="/images/airpods.png" alt="Airpods"
+                                 class="mx-auto mb-3 img-fluid" style="max-height: 120px; object-fit: contain;" />
+                            <h5 class="fw-semibold">Airpods</h5>
+                        </div>
+                    </a>
+                </div>
+        
+        </div>
+
+        <style>
+            .hover-scale:hover {
+                transform: scale(1.05);
+                transition: transform 0.2s ease-in-out;
+            }
+        </style>
+    </div>
+}

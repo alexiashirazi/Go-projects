@@ -8,8 +8,29 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Category struct {
+	ID   pgtype.UUID `json:"id"`
+	Name string      `json:"name"`
+}
+
+type Product struct {
+	ID            pgtype.UUID      `json:"id"`
+	CategoryID    pgtype.UUID      `json:"category_id"`
+	DeviceType    string           `json:"device_type"`
+	Model         string           `json:"model"`
+	Color         pgtype.Text      `json:"color"`
+	Storage       pgtype.Text      `json:"storage"`
+	BatteryHealth pgtype.Text      `json:"battery_health"`
+	Processor     pgtype.Text      `json:"processor"`
+	Ram           pgtype.Text      `json:"ram"`
+	Description   pgtype.Text      `json:"description"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
+}
+
 type User struct {
-	ID       pgtype.UUID `json:"id"`
-	Username string      `json:"username"`
-	Password string      `json:"password"`
+	ID        pgtype.UUID `json:"id"`
+	FirstName string      `json:"first_name"`
+	LastName  string      `json:"last_name"`
+	Email     string      `json:"email"`
+	Password  string      `json:"password"`
 }

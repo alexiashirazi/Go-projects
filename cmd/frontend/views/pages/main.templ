@@ -1,0 +1,15 @@
+package pages
+import "curs1_boilerplate/cmd/frontend/views/component"
+
+templ MainPage(isLoggedIn bool) {
+    <div class="container mt-5">
+        if isLoggedIn {
+            <h2>Bine ai revenit!</h2>
+        } else {
+            <h2>Te rugăm să te conectezi</h2>
+        }
+    </div>
+   <div class="container my-5">
+        @component.Vinde()
+    </div>
+}

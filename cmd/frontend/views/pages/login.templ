@@ -1,0 +1,100 @@
+package pages
+templ Login() {
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-7 col-lg-5">
+                <div class="card shadow border-0 rounded-4">
+                    <div class="card-body p-4">
+                        <h2 class="card-title text-center mb-4">Login</h2>
+                        
+                        <!-- Adăugăm un container pentru mesaje de eroare -->
+                        <div id="login-error"></div>
+                        
+                        <form id="loginForm" class="needs-validation" novalidate onsubmit="return submitLoginForm(event)">
+                            <div class="row g-3">
+                                <!-- Email -->
+                                <div class="col-12">
+                                    <label for="email" class="form-label">Email address</label>
+                                    <input type="email" name="email" class="form-control rounded-3" id="email" placeholder="you@example.com" required>
+                                    <div class="invalid-feedback">Please enter your email address.</div>
+                                </div>
+                                <!-- Parolă -->
+                                <div class="col-12">
+                                    <label for="password" class="form-label">Password</label>
+                                    <input type="password" name="password" class="form-control rounded-3" id="password" placeholder="Enter your password" required>
+                                    <div class="invalid-feedback">Please enter your password.</div>
+                                </div>
+                                <!-- Remember me -->
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="rememberMe" name="rememberMe">
+                                        <label class="form-check-label" for="rememberMe">Remember me</label>
+                                    </div>
+                                </div>
+                                <!-- Buton Login -->
+                                <div class="col-12 mt-4">
+                                    <button type="submit" class="btn btn-primary w-100 py-2 fs-5 rounded-3">Log In</button>
+                                </div>
+                                <!-- Link către înregistrare -->
+                                <div class="col-12 text-center mt-3">
+                                    <small>Nu ai cont? <a href="/register">Register now</a></small>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    function validateLoginForm() {
+      const form = document.querySelector("#loginForm");
+      let valid = form.checkValidity();
+      form.classList.add("was-validated");
+      return valid;
+    }
+    
+    function submitLoginForm(event) {
+      event.preventDefault();
+      
+      // Validăm formularul
+      if (!validateLoginForm()) {
+        return false;
+      }
+      
+      // Pregătim datele pentru JSON
+      const formData = {
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value,
+        rememberMe: document.getElementById("rememberMe").checked
+      };
+      
+      // Trimitem datele ca JSON
+      fetch('/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+        credentials: 'same-origin'
+      })
+      .then(response => {
+        if (response.redirected) {
+          // Urmărește redirectul
+          window.location.href = response.url;
+        } else if (!response.ok) {
+          // Procesează răspunsul ca text pentru mesajul de eroare
+          return response.text().then(text => {
+            document.getElementById("login-error").innerHTML = text;
+          });
+        }
+      })
+      .catch(error => {
+        document.getElementById("login-error").innerHTML = 
+          '<div class="alert alert-danger">A network error occurred. Please try again.</div>';
+      });
+      
+      return false;
+    }
+    </script>
+}
