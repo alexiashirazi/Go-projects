@@ -7,6 +7,7 @@ CREATE TABLE categories (
 
 CREATE TABLE products (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id),
     category_id UUID NOT NULL REFERENCES categories(id),    
     device_type TEXT NOT NULL, -- Telefon, Laptop, Tableta, Casti
     model TEXT NOT NULL,

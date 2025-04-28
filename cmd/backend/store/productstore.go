@@ -11,4 +11,5 @@ type ProductStore interface {
 	Update(p model.Product) error
 	Delete(id string) error
 	GetByCategory(categoryID string) ([]model.Product, error)
+	GetByUser(userID string) ([]model.Product, error)
 }

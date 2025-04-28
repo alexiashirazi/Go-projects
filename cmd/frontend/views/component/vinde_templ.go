@@ -29,7 +29,7 @@ func Vinde() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"d-flex justify-content-between align-items-center bg-light rounded p-4 shadow\"><img src=\"/images/sellnow.png\" class=\"img-fluid\" style=\"max-width: 50%; height: auto;\" alt=\"Promo Image\"><div class=\"text-end ms-5\"><h4 class=\"text-dark mb-3\">Dă o nouă viață vechiului tău Apple</h4><a href=\"/sell\" class=\"btn btn-success btn-lg px-4\">Vinde acum</a></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"d-flex justify-content-between align-items-center bg-light rounded p-4 shadow\"><img src=\"/images/sellnow.png\" class=\"img-fluid\" style=\"max-width: 50%; height: auto;\" alt=\"Promo Image\"><div class=\"text-end ms-5\"><h4 class=\"text-dark mb-3\">Dă o nouă viață vechiului tău Apple</h4><a href=\"/sell\" class=\"btn btn-success btn-lg px-4 hover-scale\" style=\"background-color: #4169E1;\">Vinde acum</a></div><style>\n            .hover-scale:hover {\n                transform: scale(1.35);\n                transition: transform 0.2s ease-in-out;\n            }\n        </style></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

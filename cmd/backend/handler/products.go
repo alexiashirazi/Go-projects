@@ -24,6 +24,14 @@ func GetAllProducts(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(products)
 }
 
+func GetAllProducts2(r *http.Request) ([]model.Product, error) {
+	products, err := ProductStore.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	return products, nil
+}
+
 // GetProductByID handles the request to get a product by its ID
 func GetProductByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
@@ -40,7 +48,7 @@ func GetProductByID(w http.ResponseWriter, r *http.Request) {
 
 // GetProductsByCategory handles the request to get products by category
 func GetProductsByCategory(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "category_id)")
+	id := chi.URLParam(r, "category_id")
 
 	products, err := ProductStore.GetByCategory(id)
 	if err != nil {
@@ -56,23 +64,24 @@ func GetProductsByCategory(w http.ResponseWriter, r *http.Request) {
 func CreateProduct(w http.ResponseWriter, r *http.Request) {
 	var product model.Product
 	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
+		fmt.Println(product)
 		http.Error(w, "Invalid product data", http.StatusBadRequest)
 		return
 	}
-	fmt.Println("Product data:", product)
-	// fmt.Println("Product data category id :", product.CategoryID)
-	// fmt.Println("Product data device type :", product.DeviceType)
-	// fmt.Println("Product data model :", product.Model)
-	// fmt.Println("Product data color :", product.Color)
-	// fmt.Println("Product data storage :", product.Storage)
-	// fmt.Println("Product data battery health :", product.BatteryHealth)
-	// fmt.Println("Product data processor :", product.Processor)
-	// fmt.Println("Product data ram :", product.Ram)
-	// fmt.Println("Product data description :", product.Description)
-	// fmt.Println("Product data created at :", product.CreatedAt)
+
+	// SCOȚI userID din context (cookie)
+	userID, ok := r.Context().Value("userID").(string)
+
+	if !ok || userID == "" {
+		fmt.Println(userID)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Legi produsul de utilizator
+	product.UserID = userID
 
 	if err := ProductStore.Add(product); err != nil {
-		fmt.Println("Error creating product:", err)
 		http.Error(w, "Error creating product", http.StatusInternalServerError)
 		return
 	}
@@ -113,4 +122,18 @@ func DeleteProduct(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Product deleted successfully"})
+}
+
+// GetProductsByCategory handles the request to get products by category
+func GetProductsByUserID(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "user_id")
+
+	products, err := ProductStore.GetByUser(id)
+	if err != nil {
+		http.Error(w, "Error fetching products by category", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(products)
 }

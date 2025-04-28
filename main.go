@@ -58,12 +58,12 @@ func main() {
 	})
 	r.Get("/sell", func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("user_id")
-		if err == nil {
+		if err != nil {
 			log.Println("error cookie sell", err)
 		}
 		isLogged := cookie != nil && cookie.Value != ""
 		if !isLogged {
-			base.PageSkeleton(pages.Login(), false).Render(r.Context(), w)
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
 		base.PageSkeleton(pages.Sell(), isLogged).Render(r.Context(), w)
@@ -81,12 +81,42 @@ func main() {
 		r.Use(handler.RequireAuth)
 		r.Get("/profile", handler.Profile)
 		r.Get("/logout", handler.Logout)
+		r.Post("/api/products", handler.CreateProduct)
+		r.Get("/sell/form", func(w http.ResponseWriter, r *http.Request) {
+			categoryID := r.URL.Query().Get("category_id")
+			if categoryID == "" {
+				http.Error(w, "Missing category_id", http.StatusBadRequest)
+				return
+			}
+
+			// APELI CATEGORIA
+			category, err := handler.CategoryStore.GetCategoryByID(categoryID)
+			if err != nil {
+				http.Error(w, "Category not found", http.StatusNotFound)
+				return
+			}
+
+			// Dai mai departe la pagină categoria
+			base.PageSkeleton(pages.SellForm(category.ID, category.Name), true).Render(r.Context(), w)
+		})
+
 	})
 
-	r.Get("/api/products", handler.GetAllProducts)
+	r.Get("/api/products", func(w http.ResponseWriter, r *http.Request) {
+		cookie, _ := r.Cookie("your_cookie_name") // presupun că iei login info
+		isLogged := cookie != nil && cookie.Value != ""
+
+		products, err := handler.GetAllProducts2(r)
+		if err != nil {
+			http.Error(w, "Error fetching products", http.StatusInternalServerError)
+			return
+		}
+
+		// Acum ai "products" și îl poți trimite
+		base.PageSkeleton(pages.Products(products), isLogged).Render(r.Context(), w)
+	})
 	r.Get("/api/products/{id}", handler.GetProductByID)
 	r.Get("/api/products/category/{categoryID}", handler.GetProductsByCategory)
-	r.Post("/api/products", handler.CreateProduct)
 	r.Put("/api/products/{id}", handler.UpdateProduct)
 	r.Delete("/api/products/{id}", handler.DeleteProduct)
 	r.Get("/api/categories", handler.GetAllCategories)
@@ -94,6 +124,7 @@ func main() {
 	r.Post("/api/categories", handler.CreateCategory)
 	r.Put("/api/categories/{id}", handler.UpdateCategory)
 	r.Delete("/api/categories/{id}", handler.DeleteCategory)
+	r.Get("/api/products/user/{userID}", handler.GetProductsByUserID)
 
 	// Start server
 	log.Println("Server pornit pe http://localhost:3000")

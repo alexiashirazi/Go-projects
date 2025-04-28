@@ -7,7 +7,6 @@ templ Login() {
                     <div class="card-body p-4">
                         <h2 class="card-title text-center mb-4">Login</h2>
                         
-                        <!-- Adăugăm un container pentru mesaje de eroare -->
                         <div id="login-error"></div>
                         
                         <form id="loginForm" class="needs-validation" novalidate onsubmit="return submitLoginForm(event)">
@@ -62,14 +61,12 @@ templ Login() {
         return false;
       }
       
-      // Pregătim datele pentru JSON
       const formData = {
         email: document.getElementById("email").value,
         password: document.getElementById("password").value,
         rememberMe: document.getElementById("rememberMe").checked
       };
       
-      // Trimitem datele ca JSON
       fetch('/login', {
         method: 'POST',
         headers: {
@@ -80,10 +77,8 @@ templ Login() {
       })
       .then(response => {
         if (response.redirected) {
-          // Urmărește redirectul
           window.location.href = response.url;
         } else if (!response.ok) {
-          // Procesează răspunsul ca text pentru mesajul de eroare
           return response.text().then(text => {
             document.getElementById("login-error").innerHTML = text;
           });

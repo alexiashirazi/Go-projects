@@ -1,5 +1,6 @@
 -- name: InsertProduct :exec
 INSERT INTO products (
+    user_id,
     category_id,
     device_type,
     model,
@@ -11,7 +12,7 @@ INSERT INTO products (
     description,
     created_at
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);
 
 
 SELECT * FROM products;
@@ -61,6 +62,11 @@ WHERE id = $1;
 UPDATE categories
 SET name = $2
 WHERE id = $1;
+
+-- name: GetProductsByUser :many
+SELECT * FROM products
+WHERE user_id = $1;
+
 
 -- name: DeleteCategory :exec
 DELETE FROM categories

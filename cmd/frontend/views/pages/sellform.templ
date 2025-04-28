@@ -1,0 +1,132 @@
+package pages
+
+templ SellForm(categoryID string, categoryName string) {
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10 col-lg-8">
+                <div class="card shadow border-0 rounded-4">
+                    <div class="card-body p-4">
+                        <h2 class="card-title text-center mb-4">Adaugă un {categoryName}</h2>
+
+                        <div id="sell-error"></div>
+
+                        <form id="sellForm" class="needs-validation" novalidate onsubmit="return submitSellForm(event)">
+                            <div class="row g-3">
+
+                                <input type="hidden" name="category_id" value={categoryID} />
+                                <input type="hidden" name="device_type" value={categoryName} />
+
+                                <!-- Model -->
+                                <div class="col-md-6">
+                                    <label for="model" class="form-label">Model</label>
+                                    <input type="text" class="form-control" id="model" name="model" required>
+                                    <div class="invalid-feedback">Modelul este necesar.</div>
+                                </div>
+
+                                <!-- Color -->
+                                <div class="col-md-6">
+                                    <label for="color" class="form-label">Culoare</label>
+                                    <input type="text" class="form-control" id="color" name="color">
+                                </div>
+
+                                <!-- Storage -->
+                                if categoryName != "casti" && categoryName != "airpods" {
+                                    <div class="col-md-6">
+                                        <label for="storage" class="form-label">Memorie</label>
+                                        <input type="text" class="form-control" id="storage" name="storage">
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="battery_health" class="form-label">Sănătate Baterie</label>
+                                        <input type="text" class="form-control" id="battery_health" name="battery_health">
+                                    </div>
+                                }
+
+                                <!-- Processor + RAM pentru MacBook -->
+                                if categoryName == "laptop" {
+                                    <div class="col-md-6">
+                                        <label for="processor" class="form-label">Procesor</label>
+                                        <input type="text" class="form-control" id="processor" name="processor">
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="ram" class="form-label">RAM</label>
+                                        <input type="text" class="form-control" id="ram" name="ram">
+                                    </div>
+                                }
+
+                                <!-- Description -->
+                                <div class="col-12">
+                                    <label for="description" class="form-label">Descriere</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                                    <div class="invalid-feedback">Descrierea este necesară.</div>
+                                </div>
+
+                                <!-- Submit Button -->
+                                <div class="col-12 mt-4 text-center">
+                                    <button type="submit" class="btn btn-success px-5 py-2">Publică Produs</button>
+                                </div>
+
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        function validateSellForm() {
+            const form = document.querySelector("#sellForm");
+            let valid = form.checkValidity();
+            form.classList.add("was-validated");
+            return valid;
+        }
+
+        function submitSellForm(event) {
+            event.preventDefault();
+            
+            if (!validateSellForm()) {
+                return false;
+            }
+            
+            const formData = {
+                category_id: document.querySelector("input[name='category_id']").value,
+                device_type: document.querySelector("input[name='device_type']").value,
+                model: document.getElementById("model").value,
+                color: document.getElementById("color").value,
+                storage: document.getElementById("storage") ? document.getElementById("storage").value : "",
+                battery_health: document.getElementById("battery_health") ? document.getElementById("battery_health").value : "",
+                processor: document.getElementById("processor") ? document.getElementById("processor").value : "",
+                ram: document.getElementById("ram") ? document.getElementById("ram").value : "",
+                description: document.getElementById("description").value
+            };
+            
+            fetch('/api/products', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    window.location.href = "/"; //
+                } else {
+                    return response.text().then(text => {
+                        document.getElementById("sell-error").innerHTML = text;
+                    });
+                }
+            })
+            .catch(error => {
+                document.getElementById("sell-error").innerHTML = 
+                    '<div class="alert alert-danger">A apărut o eroare de rețea. Încearcă din nou!</div>';
+            });
+            
+            return false;
+        }
+        </script>
+    </div>
+}

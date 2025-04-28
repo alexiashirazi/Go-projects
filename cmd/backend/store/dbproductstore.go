@@ -14,17 +14,57 @@ type dbProductStore struct {
 	conn db.DBTX
 }
 
+// GetByUser implements ProductStore.
+func (d *dbProductStore) GetByUser(userID string) ([]model.Product, error) {
+	queries := db.New(d.conn)
+
+	var uuid pgtype.UUID
+	if err := uuid.Scan(userID); err != nil {
+		return nil, err
+	}
+
+	products, err := queries.GetProductsByUser(context.Background(), uuid)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []model.Product
+	for _, p := range products {
+		result = append(result, model.Product{
+			ID:            p.ID.String(),
+			UserID:        p.UserID.String(),
+			CategoryID:    p.CategoryID.String(),
+			DeviceType:    p.DeviceType,
+			Model:         p.Model,
+			Color:         p.Color.String,
+			Storage:       p.Storage.String,
+			BatteryHealth: p.BatteryHealth.String,
+			Processor:     p.Processor.String,
+			Ram:           p.Ram.String,
+			Description:   p.Description.String,
+			CreatedAt:     p.CreatedAt.Time.String(),
+		})
+	}
+	return result, nil
+}
+
 // Add implements ProductStore.
 
 func (d *dbProductStore) Add(p model.Product) error {
 	queries := db.New(d.conn)
-
-	fmt.Println("categoria e ", p.CategoryID)
+	fmt.Println("Full product data:", p)
 
 	// Convert string CategoryID → pgtype.UUID
 	var categoryUUID pgtype.UUID
 	if err := categoryUUID.Scan(p.CategoryID); err != nil {
-		return err
+		fmt.Println("CategoryID conversion error:", err)
+		return fmt.Errorf("CategoryID conversion error: %w", err)
+	}
+
+	var userUUID pgtype.UUID
+	if err := userUUID.Scan(p.UserID); err != nil {
+		fmt.Println("UserID conversion error:", err)
+		return fmt.Errorf("UserID conversion error: %w", err)
 	}
 
 	// Convert string CreatedAt → time.Time → pgtype.Timestamp
@@ -32,10 +72,12 @@ func (d *dbProductStore) Add(p model.Product) error {
 	if p.CreatedAt != "" {
 		parsedCreatedAt, err := time.Parse(time.RFC3339, p.CreatedAt)
 		if err != nil {
-			return err
+			fmt.Println("CreatedAt parsing error:", err)
+			return fmt.Errorf("CreatedAt parsing error: %w", err)
 		}
 		if err := createdAt.Scan(parsedCreatedAt); err != nil {
-			return err
+			fmt.Println("CreatedAt scan error:", err)
+			return fmt.Errorf("CreatedAt scan error: %w", err)
 		}
 	} else {
 		// fallback dacă nu trimite frontend data
@@ -43,7 +85,17 @@ func (d *dbProductStore) Add(p model.Product) error {
 		createdAt.Valid = true
 	}
 
-	return queries.InsertProduct(context.Background(), db.InsertProductParams{
+	// // Check for required fields
+	// if p.DeviceType == "" {
+	// 	return fmt.Errorf("DeviceType is required")
+	// }
+	// if p.Model == "" {
+	// 	return fmt.Errorf("Model is required")
+	// }
+
+	// Create parameters for database insertion
+	params := db.InsertProductParams{
+		UserID:        userUUID,
 		CategoryID:    categoryUUID,
 		DeviceType:    p.DeviceType,
 		Model:         p.Model,
@@ -54,7 +106,19 @@ func (d *dbProductStore) Add(p model.Product) error {
 		Ram:           pgtype.Text{String: p.Ram, Valid: p.Ram != ""},
 		Description:   pgtype.Text{String: p.Description, Valid: p.Description != ""},
 		CreatedAt:     createdAt,
-	})
+	}
+
+	// Print the parameters being sent to the database
+	fmt.Printf("Inserting with params: %+v\n", params)
+
+	// Attempt the insert
+	err := queries.InsertProduct(context.Background(), params)
+	if err != nil {
+		fmt.Println("Database insertion error:", err)
+
+	}
+
+	return nil
 }
 
 // Delete implements ProductStore.
@@ -81,6 +145,7 @@ func (d *dbProductStore) GetAll() ([]model.Product, error) {
 	for _, p := range products {
 		result = append(result, model.Product{
 			ID:            p.ID.String(),
+			UserID:        p.UserID.String(),
 			CategoryID:    p.CategoryID.String(),
 			DeviceType:    p.DeviceType,
 			Model:         p.Model,
@@ -113,6 +178,7 @@ func (d *dbProductStore) GetByCategory(categoryID string) ([]model.Product, erro
 	for _, p := range product {
 		result = append(result, model.Product{
 			ID:            p.ID.String(),
+			UserID:        p.UserID.String(),
 			CategoryID:    p.CategoryID.String(),
 			DeviceType:    p.DeviceType,
 			Model:         p.Model,
@@ -144,6 +210,7 @@ func (d *dbProductStore) GetByID(id string) (model.Product, error) {
 
 	return model.Product{
 		ID:            p.ID.String(),
+		UserID:        p.UserID.String(),
 		CategoryID:    p.CategoryID.String(),
 		DeviceType:    p.DeviceType,
 		Model:         p.Model,

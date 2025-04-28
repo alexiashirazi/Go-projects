@@ -56,7 +56,7 @@ func (q *Queries) GetAllCategories(ctx context.Context) ([]Category, error) {
 }
 
 const getAllProducts = `-- name: GetAllProducts :many
-SELECT id, category_id, device_type, model, color, storage, battery_health, processor, ram, description, created_at FROM products
+SELECT id, user_id, category_id, device_type, model, color, storage, battery_health, processor, ram, description, created_at FROM products
 `
 
 func (q *Queries) GetAllProducts(ctx context.Context) ([]Product, error) {
@@ -70,6 +70,7 @@ func (q *Queries) GetAllProducts(ctx context.Context) ([]Product, error) {
 		var i Product
 		if err := rows.Scan(
 			&i.ID,
+			&i.UserID,
 			&i.CategoryID,
 			&i.DeviceType,
 			&i.Model,
@@ -104,7 +105,7 @@ func (q *Queries) GetCategoryByID(ctx context.Context, id pgtype.UUID) (Category
 }
 
 const getProductByID = `-- name: GetProductByID :one
-SELECT id, category_id, device_type, model, color, storage, battery_health, processor, ram, description, created_at FROM products
+SELECT id, user_id, category_id, device_type, model, color, storage, battery_health, processor, ram, description, created_at FROM products
 WHERE id = $1
 `
 
@@ -113,6 +114,7 @@ func (q *Queries) GetProductByID(ctx context.Context, id pgtype.UUID) (Product, 
 	var i Product
 	err := row.Scan(
 		&i.ID,
+		&i.UserID,
 		&i.CategoryID,
 		&i.DeviceType,
 		&i.Model,
@@ -128,7 +130,7 @@ func (q *Queries) GetProductByID(ctx context.Context, id pgtype.UUID) (Product, 
 }
 
 const getProductsByCategory = `-- name: GetProductsByCategory :many
-SELECT id, category_id, device_type, model, color, storage, battery_health, processor, ram, description, created_at FROM products
+SELECT id, user_id, category_id, device_type, model, color, storage, battery_health, processor, ram, description, created_at FROM products
 WHERE category_id = $1
 `
 
@@ -143,6 +145,45 @@ func (q *Queries) GetProductsByCategory(ctx context.Context, categoryID pgtype.U
 		var i Product
 		if err := rows.Scan(
 			&i.ID,
+			&i.UserID,
+			&i.CategoryID,
+			&i.DeviceType,
+			&i.Model,
+			&i.Color,
+			&i.Storage,
+			&i.BatteryHealth,
+			&i.Processor,
+			&i.Ram,
+			&i.Description,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getProductsByUser = `-- name: GetProductsByUser :many
+SELECT id, user_id, category_id, device_type, model, color, storage, battery_health, processor, ram, description, created_at FROM products
+WHERE user_id = $1
+`
+
+func (q *Queries) GetProductsByUser(ctx context.Context, userID pgtype.UUID) ([]Product, error) {
+	rows, err := q.db.Query(ctx, getProductsByUser, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Product{}
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
 			&i.CategoryID,
 			&i.DeviceType,
 			&i.Model,
@@ -175,6 +216,7 @@ func (q *Queries) InsertCategory(ctx context.Context, name string) error {
 
 const insertProduct = `-- name: InsertProduct :exec
 INSERT INTO products (
+    user_id,
     category_id,
     device_type,
     model,
@@ -186,10 +228,11 @@ INSERT INTO products (
     description,
     created_at
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 `
 
 type InsertProductParams struct {
+	UserID        pgtype.UUID      `json:"user_id"`
 	CategoryID    pgtype.UUID      `json:"category_id"`
 	DeviceType    string           `json:"device_type"`
 	Model         string           `json:"model"`
@@ -204,6 +247,7 @@ type InsertProductParams struct {
 
 func (q *Queries) InsertProduct(ctx context.Context, arg InsertProductParams) error {
 	_, err := q.db.Exec(ctx, insertProduct,
+		arg.UserID,
 		arg.CategoryID,
 		arg.DeviceType,
 		arg.Model,

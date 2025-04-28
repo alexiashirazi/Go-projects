@@ -6,7 +6,14 @@ templ Vinde() {
 
         <div class="text-end ms-5">
             <h4 class="text-dark mb-3">Dă o nouă viață vechiului tău Apple</h4>
-            <a href="/sell" class="btn btn-success btn-lg px-4">Vinde acum</a>
+            <a href="/sell" class="btn btn-success btn-lg px-4 hover-scale" style="background-color: #4169E1;">Vinde acum</a>
         </div>
+
+         <style>
+            .hover-scale:hover {
+                transform: scale(1.35);
+                transition: transform 0.2s ease-in-out;
+            }
+        </style>
     </div>
 }

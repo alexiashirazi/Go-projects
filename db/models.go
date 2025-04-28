@@ -15,6 +15,7 @@ type Category struct {
 
 type Product struct {
 	ID            pgtype.UUID      `json:"id"`
+	UserID        pgtype.UUID      `json:"user_id"`
 	CategoryID    pgtype.UUID      `json:"category_id"`
 	DeviceType    string           `json:"device_type"`
 	Model         string           `json:"model"`

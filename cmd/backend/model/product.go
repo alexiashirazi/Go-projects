@@ -2,6 +2,7 @@ package model
 
 type Product struct {
 	ID            string `json:"id"`
+	UserID        string `json:"user_id"`
 	CategoryID    string `json:"category_id"`
 	DeviceType    string `json:"device_type"`
 	Model         string `json:"model"`
